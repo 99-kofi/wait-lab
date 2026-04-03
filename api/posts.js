@@ -1,7 +1,6 @@
-// In-memory posts store (resets on cold start — use a database for persistence)
 let posts = [];
 
-export default function handler(req, res) {
+module.exports = function handler(req, res) {
   if (req.method === 'GET') {
     return res.json(posts);
   }
@@ -25,7 +24,6 @@ export default function handler(req, res) {
   }
 
   if (req.method === 'DELETE') {
-    // Extract id from query string for /api/posts?id=123
     const id = parseInt(req.query.id);
     if (id) {
       posts = posts.filter(p => p.id !== id);
@@ -35,4 +33,4 @@ export default function handler(req, res) {
   }
 
   res.status(405).json({ error: 'Method not allowed' });
-}
+};

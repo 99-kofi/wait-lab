@@ -1,8 +1,6 @@
 {
-  "rewrites": [
-    { "source": "/api/stats", "destination": "/api/stats" },
-    { "source": "/api/visit", "destination": "/api/visit" },
-    { "source": "/api/posts", "destination": "/api/posts" },
-    { "source": "/api/posts/:id", "destination": "/api/posts" }
-  ]
+  "framework": null,
+  "buildCommand": false,
+  "installCommand": false,
+  "outputDirectory": "."
 }
