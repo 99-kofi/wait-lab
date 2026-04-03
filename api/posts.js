@@ -1,10 +1,25 @@
-const { kv } = require('@vercel/kv');
+const { createClient } = require('redis');
+const REDIS_URL = process.env.REDIS_URL || 'redis://default:HWAvHCedhYFKj51L3d0XWHhyhIl87epj@redis-15067.c93.us-east-1-3.ec2.cloud.redislabs.com:15067';
+
+let client;
+async function getClient() {
+  if (!client) {
+    client = createClient({ url: REDIS_URL });
+    client.on('error', err => console.log('Redis Client Error', err));
+    await client.connect();
+  }
+  return client;
+}
 
 module.exports = async function handler(req, res) {
   const POSTS_KEY = 'wait-labs-posts';
+  const kv = await getClient();
   
-  // Helper to fetch posts
-  const getPosts = async () => (await kv.get(POSTS_KEY)) || [];
+  // Helper to fetch posts (standard redis requires json.parse)
+  const getPosts = async () => {
+    const data = await kv.get(POSTS_KEY);
+    return data ? JSON.parse(data) : [];
+  };
 
   if (req.method === 'GET') {
     const posts = await getPosts();
@@ -28,7 +43,7 @@ module.exports = async function handler(req, res) {
       mediaType: null
     };
     posts.unshift(newPost);
-    await kv.set(POSTS_KEY, posts);
+    await kv.set(POSTS_KEY, JSON.stringify(posts));
     
     return res.json(newPost);
   }
@@ -38,7 +53,7 @@ module.exports = async function handler(req, res) {
     if (id) {
       let posts = await getPosts();
       posts = posts.filter(p => p.id !== id);
-      await kv.set(POSTS_KEY, posts);
+      await kv.set(POSTS_KEY, JSON.stringify(posts));
       return res.json({ success: true });
     }
     return res.status(400).json({ error: 'Post id required' });
