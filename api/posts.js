@@ -1,7 +1,13 @@
-let posts = [];
+const { kv } = require('@vercel/kv');
 
-module.exports = function handler(req, res) {
+module.exports = async function handler(req, res) {
+  const POSTS_KEY = 'wait-labs-posts';
+  
+  // Helper to fetch posts
+  const getPosts = async () => (await kv.get(POSTS_KEY)) || [];
+
   if (req.method === 'GET') {
+    const posts = await getPosts();
     return res.json(posts);
   }
 
@@ -10,6 +16,8 @@ module.exports = function handler(req, res) {
     if (!title || !content) {
       return res.status(400).json({ error: 'Title and content are required' });
     }
+    
+    const posts = await getPosts();
     const newPost = {
       id: Date.now(),
       title,
@@ -20,13 +28,17 @@ module.exports = function handler(req, res) {
       mediaType: null
     };
     posts.unshift(newPost);
+    await kv.set(POSTS_KEY, posts);
+    
     return res.json(newPost);
   }
 
   if (req.method === 'DELETE') {
     const id = parseInt(req.query.id);
     if (id) {
+      let posts = await getPosts();
       posts = posts.filter(p => p.id !== id);
+      await kv.set(POSTS_KEY, posts);
       return res.json({ success: true });
     }
     return res.status(400).json({ error: 'Post id required' });
