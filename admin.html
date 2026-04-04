@@ -205,7 +205,7 @@
             </div>
         </section>
     </div>
-
+    <script>
         let currentPosts = [];
         let editingPostId = null;
 
@@ -265,6 +265,12 @@
                 });
                 mediaType = mediaFile.type.startsWith('video') ? 'video' : 'image';
             }
+            const payload = {
+                title,
+                content,
+                media: mediaBase64,
+                mediaType
+            };
 
             if (editingPostId) {
                 payload.id = editingPostId;
