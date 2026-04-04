@@ -158,10 +158,57 @@
             padding: 0.5rem 1rem;
             font-size: 0.8rem;
         }
+
+        /* Auth Overlay */
+        #auth-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(10, 10, 10, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            backdrop-filter: blur(10px);
+        }
+
+        .auth-card {
+            background: var(--surface);
+            padding: 3rem;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        .auth-card h2 {
+            margin-top: 0;
+            margin-bottom: 2rem;
+            color: var(--primary);
+        }
+
+        .auth-card input {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
+    <!-- Auth Gateway -->
+    <div id="auth-overlay">
+        <div class="auth-card">
+            <h2>Admin Authentication</h2>
+            <form id="auth-form">
+                <input type="password" id="auth-password" placeholder="Enter Password" required>
+                <button type="submit" class="btn" style="width: 100%;">Access Secure Portal</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="container" id="main-content" style="display: none;">
         <header>
             <h1>WAIT LAB | Admin</h1>
             <a href="index.html" style="color: var(--text-sub); text-decoration: none;">View Site</a>
@@ -209,6 +256,53 @@
         let currentPosts = [];
         let editingPostId = null;
 
+        // --- AUTHENTICATION LOGIC ---
+        const authOverlay = document.getElementById('auth-overlay');
+        const mainContent = document.getElementById('main-content');
+        
+        function getAuthToken() {
+            return localStorage.getItem('admin_password');
+        }
+
+        function checkAuth() {
+            if (getAuthToken()) {
+                authOverlay.style.display = 'none';
+                mainContent.style.display = 'block';
+                loadDashboard();
+            }
+        }
+
+        document.getElementById('auth-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const pwd = document.getElementById('auth-password').value;
+            localStorage.setItem('admin_password', pwd);
+            checkAuth();
+        });
+
+        // Global fetch helper tailored to intercept 401s
+        async function fetchWithAuth(url, options = {}) {
+            const token = getAuthToken();
+            const headers = {
+                ...options.headers,
+                'Authorization': token ? `Bearer ${token}` : ''
+            };
+            
+            const response = await fetch(url, { ...options, headers });
+            
+            if (response.status === 401) {
+                localStorage.removeItem('admin_password');
+                alert('Authentication failed. Password might be incorrect or expired.');
+                window.location.reload();
+                throw new Error('Unauthorized');
+            }
+            
+            return response;
+        }
+
+        checkAuth(); // Initial check
+
+
+        // --- DASHBOARD LOGIC ---
         // Load data on page load
         function loadDashboard() {
             // Fetch Stats
@@ -278,7 +372,7 @@
 
             const method = editingPostId ? 'PUT' : 'POST';
 
-            fetch('/api/posts', {
+            fetchWithAuth('/api/posts', {
                 method: method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -319,7 +413,7 @@
         // Delete post
         function deletePost(id) {
             if (confirm('Are you sure you want to delete this post?')) {
-                fetch('/api/posts?id=' + id, { method: 'DELETE' })
+                fetchWithAuth('/api/posts?id=' + id, { method: 'DELETE' })
                     .then(() => loadDashboard())
                     .catch(e => alert('Failed to delete post: ' + e));
             }
@@ -332,7 +426,7 @@
                 content: 'This is a test post sent by the system to verify the updates page rendering.'
             };
             
-            fetch('/api/posts', {
+            fetchWithAuth('/api/posts', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)

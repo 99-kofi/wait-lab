@@ -12,6 +12,13 @@ module.exports = async function handler(req, res) {
     return data ? JSON.parse(data) : [];
   };
 
+  // Helper to check authentication
+  const checkAuth = () => {
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.replace('Bearer ', '').trim();
+    return token === process.env.ADMIN_PASSWORD;
+  };
+
   try {
     if (req.method === 'GET') {
       const posts = await getPosts();
@@ -20,6 +27,11 @@ module.exports = async function handler(req, res) {
     }
 
     if (req.method === 'POST') {
+      if (!checkAuth()) {
+        await redis.disconnect();
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
       const { title, content, author, date, media, mediaType } = req.body || {};
       if (!title || !content) {
         await redis.disconnect();
@@ -44,6 +56,11 @@ module.exports = async function handler(req, res) {
     }
 
     if (req.method === 'PUT') {
+      if (!checkAuth()) {
+        await redis.disconnect();
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
       const { id, title, content, author, date, media, mediaType } = req.body || {};
       if (!id || !title || !content) {
         await redis.disconnect();
@@ -71,6 +88,11 @@ module.exports = async function handler(req, res) {
     }
 
     if (req.method === 'DELETE') {
+      if (!checkAuth()) {
+        await redis.disconnect();
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
       const id = parseInt(req.query.id);
       if (id) {
         let posts = await getPosts();
