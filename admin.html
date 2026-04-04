@@ -264,19 +264,52 @@
             return localStorage.getItem('admin_password');
         }
 
-        function checkAuth() {
-            if (getAuthToken()) {
-                authOverlay.style.display = 'none';
-                mainContent.style.display = 'block';
-                loadDashboard();
+        async function checkAuth() {
+            const token = getAuthToken();
+            if (token) {
+                try {
+                    const res = await fetch('/api/auth', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (res.ok) {
+                        authOverlay.style.display = 'none';
+                        mainContent.style.display = 'block';
+                        loadDashboard();
+                        return;
+                    }
+                } catch(e) {}
+                localStorage.removeItem('admin_password');
             }
+            authOverlay.style.display = 'flex';
         }
 
-        document.getElementById('auth-form').addEventListener('submit', (e) => {
+        document.getElementById('auth-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const originalText = btn.innerText;
+            btn.innerText = 'Verifying...';
+            
             const pwd = document.getElementById('auth-password').value;
-            localStorage.setItem('admin_password', pwd);
-            checkAuth();
+            
+            try {
+                const res = await fetch('/api/auth', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${pwd}` }
+                });
+                
+                if (res.ok) {
+                    localStorage.setItem('admin_password', pwd);
+                    authOverlay.style.display = 'none';
+                    mainContent.style.display = 'block';
+                    loadDashboard();
+                } else {
+                    alert('Incorrect password! Access denied.');
+                }
+            } catch(err) {
+                alert('Verification encountered an error.');
+            }
+            btn.innerText = originalText;
         });
 
         // Global fetch helper tailored to intercept 401s
