@@ -206,20 +206,23 @@
         </section>
     </div>
 
-    <script>
+        let currentPosts = [];
+        let editingPostId = null;
+
         // Load data on page load
         function loadDashboard() {
             // Fetch Stats
             fetch('/api/stats')
                 .then(res => res.json())
                 .then(data => {
-                    document.getElementById('visit-count').innerText = data.visits;
+                    document.getElementById('visit-count').innerText = data.visits || 0;
                 });
 
             // Fetch Posts
             fetch('/api/posts')
                 .then(res => res.json())
                 .then(posts => {
+                    currentPosts = posts;
                     document.getElementById('post-count').innerText = posts.length;
                     const container = document.getElementById('posts-container');
                     container.innerHTML = posts.map(post => `
@@ -233,7 +236,10 @@
                                     <p>${new Date(post.date).toLocaleString()}</p>
                                 </div>
                             </div>
-                            <button class="btn btn-delete" onclick="deletePost(${post.id})">Delete</button>
+                            <div>
+                                <button class="btn btn-secondary" style="background: var(--primary); padding: 0.5rem 1rem; font-size: 0.8rem; margin-right: 0.5rem" onclick="editPost(${post.id})">Edit</button>
+                                <button class="btn btn-delete" onclick="deletePost(${post.id})">Delete</button>
+                            </div>
                         </div>
                     `).join('');
                 });
@@ -260,15 +266,14 @@
                 mediaType = mediaFile.type.startsWith('video') ? 'video' : 'image';
             }
 
-            const payload = {
-                title,
-                content,
-                media: mediaBase64,
-                mediaType
-            };
+            if (editingPostId) {
+                payload.id = editingPostId;
+            }
+
+            const method = editingPostId ? 'PUT' : 'POST';
 
             fetch('/api/posts', {
-                method: 'POST',
+                method: method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             })
@@ -280,20 +285,37 @@
             })
             .then(() => {
                 document.getElementById('publish-form').reset();
+                if (editingPostId) {
+                    editingPostId = null;
+                    document.querySelector('#publish-form button[type="submit"]').innerText = 'Publish Post';
+                }
                 loadDashboard();
-                alert('Post published successfully!');
+                alert(method === 'PUT' ? 'Post updated successfully!' : 'Post published successfully!');
             })
             .catch(err => {
-                console.error('Error publishing post:', err);
-                alert('Failed to publish post: ' + err.message);
+                console.error('Error saving post:', err);
+                alert('Failed to save post: ' + err.message);
             });
         });
+
+        // Edit post
+        function editPost(id) {
+            const post = currentPosts.find(p => p.id === id);
+            if (post) {
+                editingPostId = post.id;
+                document.getElementById('title').value = post.title;
+                document.getElementById('content').value = post.content;
+                document.querySelector('#publish-form button[type="submit"]').innerText = 'Update Post';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
 
         // Delete post
         function deletePost(id) {
             if (confirm('Are you sure you want to delete this post?')) {
-                fetch(`/api/posts/${id}`, { method: 'DELETE' })
-                    .then(() => loadDashboard());
+                fetch('/api/posts?id=' + id, { method: 'DELETE' })
+                    .then(() => loadDashboard())
+                    .catch(e => alert('Failed to delete post: ' + e));
             }
         }
 
