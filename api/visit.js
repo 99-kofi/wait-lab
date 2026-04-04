@@ -1,5 +1,5 @@
 const { createClient } = require('redis');
-const REDIS_URL = process.env.REDIS_URL || 'redis://default:HWAvHCedhYFKj51L3d0XWHhyhIl87epj@redis-15067.c93.us-east-1-3.ec2.cloud.redislabs.com:15067';
+const REDIS_URL = process.env.REDIS_URL;
 
 let client;
 async function getClient() {
