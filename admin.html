@@ -240,20 +240,37 @@
         }
 
         // Handle form submission
-        document.getElementById('publish-form').addEventListener('submit', (e) => {
+        document.getElementById('publish-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const title = document.getElementById('title').value;
             const content = document.getElementById('content').value;
-            const media = document.getElementById('media').files[0];
+            const mediaFile = document.getElementById('media').files[0];
 
-            const formData = new FormData();
-            formData.append('title', title);
-            formData.append('content', content);
-            if (media) formData.append('media', media);
+            let mediaBase64 = null;
+            let mediaType = null;
+
+            if (mediaFile) {
+                // If it exceeds Vercel limits (~4MB), it might fail, but base64 is necessary for serverless data storage without external blobs.
+                mediaBase64 = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(mediaFile);
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = error => reject(error);
+                });
+                mediaType = mediaFile.type.startsWith('video') ? 'video' : 'image';
+            }
+
+            const payload = {
+                title,
+                content,
+                media: mediaBase64,
+                mediaType
+            };
 
             fetch('/api/posts', {
                 method: 'POST',
-                body: formData
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
             })
             .then(res => {
                 if (!res.ok) {
@@ -282,13 +299,15 @@
 
         // Publish test post
         function publishTestPost() {
-            const formData = new FormData();
-            formData.append('title', 'System Test Post');
-            formData.append('content', 'This is a test post sent by the system to verify the updates page rendering.');
+            const payload = {
+                title: 'System Test Post',
+                content: 'This is a test post sent by the system to verify the updates page rendering.'
+            };
             
             fetch('/api/posts', {
                 method: 'POST',
-                body: formData
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
             })
             .then(res => res.ok ? res.json() : Promise.reject('Failed'))
             .then(() => {

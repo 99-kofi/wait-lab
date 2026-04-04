@@ -27,7 +27,7 @@ module.exports = async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    const { title, content, author, date } = req.body || {};
+    const { title, content, author, date, media, mediaType } = req.body || {};
     if (!title || !content) {
       return res.status(400).json({ error: 'Title and content are required' });
     }
@@ -39,8 +39,8 @@ module.exports = async function handler(req, res) {
       content,
       author: author || 'Admin',
       date: date || new Date().toISOString(),
-      media: null,
-      mediaType: null
+      media: media || null,
+      mediaType: mediaType || null
     };
     posts.unshift(newPost);
     await kv.set(POSTS_KEY, JSON.stringify(posts));
