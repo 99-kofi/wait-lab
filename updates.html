@@ -234,6 +234,48 @@
             pointer-events: auto;
         }
 
+        /* New Refined Styles */
+        .single-post-view {
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .post-preview-media {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border: 1px solid var(--border);
+        }
+
+        .post-cover-media {
+            width: 100%;
+            border-radius: 12px;
+            margin: 2rem 0;
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 2rem;
+            transition: transform 0.2s;
+        }
+
+        .back-btn:hover {
+            transform: translateX(-5px);
+        }
+
         footer {
             text-align: center;
             padding: 4rem 0;
@@ -272,63 +314,80 @@
             fetch('/api/posts')
                 .then(res => res.json())
                 .then(posts => {
-                    console.log('Fetched posts:', posts);
                     const container = document.getElementById('posts-container');
-                    if (!posts || posts.length === 0) {
-                        container.innerHTML = '<p style="text-align: center; color: var(--text-sub);">No updates published yet. Check back soon!</p>';
-                        return;
-                    }
-
-                    container.innerHTML = posts.map(post => {
-                        let dateStr = 'Recent Update';
-                        try {
-                            if (post.date) {
-                                dateStr = new Date(post.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
-                            }
-                        } catch (e) { console.error('Date error:', e); }
-
-                        return `
-                            <article class="post-card" id="post-${post.id}" onclick="togglePost('${post.id}')">
-                                <span class="post-date">${dateStr}</span>
-                                <h2 class="post-title" style="font-size: 1.5rem; margin-bottom: 1rem;">${post.title}</h2>
-                                
-                                <div class="post-content-wrapper">
-                                    <div class="post-content">${post.content}</div>
-                                    
-                                    ${post.media ? (post.mediaType === 'video' 
-                                        ? `<video src="${post.media}" class="post-media" controls onclick="event.stopPropagation()"></video>` 
-                                        : `<img src="${post.media}" class="post-media" alt="${post.title}">`) : ''}
-                                </div>
-
-                                <button class="read-more-btn">
-                                    <span class="toggle-text"></span>
-                                    <i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i>
-                                </button>
-
-                                <div class="post-footer" onclick="event.stopPropagation()">
-                                    <button class="btn-share" onclick="sharePost('${post.id}', '${post.title.replace(/'/g, "\\'")}')">
-                                        <i data-lucide="share-2" style="width: 16px; height: 16px;"></i> Share
-                                    </button>
-                                </div>
-                            </article>
-                        `;
-                    }).join('');
-
-                    lucide.createIcons();
-                    
-                    // Deep Linking Scroll
+                    const mainHeader = document.querySelector('header');
                     const urlParams = new URLSearchParams(window.location.search);
                     const targetPostId = urlParams.get('post');
+
                     if (targetPostId) {
-                        const el = document.getElementById('post-' + targetPostId);
-                        if (el) {
-                            setTimeout(() => {
-                                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                                el.style.borderLeft = "4px solid var(--primary)";
-                                el.style.paddingLeft = "2rem";
-                            }, 500);
+                        if (mainHeader) mainHeader.style.display = 'none';
+                        // SINGLE POST VIEW
+                        const post = posts.find(p => p.id == targetPostId);
+                        if (!post) {
+                            container.innerHTML = '<p style="text-align: center;">Post not found. <a href="updates.html">Back to updates</a></p>';
+                            return;
                         }
+
+                        // Update page title
+                        document.title = post.title + " | WAIT LAB";
+                        
+                        let dateStr = post.date ? new Date(post.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) : 'Recent Update';
+
+                        container.innerHTML = `
+                            <div class="single-post-view">
+                                <a href="updates.html" class="back-btn">
+                                    <i data-lucide="arrow-left" style="width: 18px;"></i>
+                                    Back to Updates
+                                </a>
+                                <span class="post-date">${dateStr}</span>
+                                <h1 style="font-size: 3rem; margin-bottom: 2rem;">${post.title}</h1>
+                                
+                                ${post.media ? (post.mediaType === 'video' 
+                                    ? `<video src="${post.media}" class="post-cover-media" controls></video>` 
+                                    : `<img src="${post.media}" class="post-cover-media" alt="${post.title}">`) : ''}
+
+                                <div class="post-content" style="font-size: 1.25rem; line-height: 1.8; color: var(--text-main);">${post.content}</div>
+
+                                <div class="post-footer" style="opacity: 1; pointer-events: auto; justify-content: flex-start; margin-top: 4rem;">
+                                    <button class="btn-share" onclick="sharePost('${post.id}', '${post.title.replace(/'/g, "\\'")}')">
+                                        <i data-lucide="share-2" style="width: 16px; height: 16px;"></i> Share this update
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        // LIST VIEW
+                        container.innerHTML = posts.map(post => {
+                            let dateStr = 'Recent Update';
+                            try {
+                                if (post.date) {
+                                    dateStr = new Date(post.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+                                }
+                            } catch (e) { console.error('Date error:', e); }
+
+                            return `
+                                <article class="post-card" id="post-${post.id}" onclick="window.location.href='updates.html?post=${post.id}'">
+                                    <span class="post-date">${dateStr}</span>
+                                    <h2 class="post-title" style="font-size: 1.75rem; margin-bottom: 1rem;">${post.title}</h2>
+                                    
+                                    ${post.media ? (post.mediaType === 'video' 
+                                        ? `<div style="position: relative;"><video src="${post.media}" class="post-preview-media"></video><div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.5); border-radius: 50%; padding: 10px;"><i data-lucide="play" style="color: white; width: 24px; height: 24px;"></i></div></div>` 
+                                        : `<img src="${post.media}" class="post-preview-media" alt="${post.title}">`) : ''}
+
+                                    <div class="post-content-wrapper" style="max-height: 80px;">
+                                        <div class="post-content" style="font-size: 1rem;">${post.content}</div>
+                                    </div>
+
+                                    <div class="read-more-btn">
+                                        <span>Read More</span>
+                                        <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i>
+                                    </div>
+                                </article>
+                            `;
+                        }).join('');
                     }
+
+                    lucide.createIcons();
                 })
                 .catch(err => {
                     console.error('Failed to load posts:', err);
