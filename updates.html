@@ -140,6 +140,100 @@
             object-fit: contain;
         }
 
+        /* Preview / Expand Styles */
+        .post-card {
+            cursor: pointer;
+            transition: background 0.3s, padding 0.3s;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid transparent;
+        }
+
+        .post-card:hover {
+            background: rgba(255, 255, 255, 0.03);
+            border-color: var(--border);
+        }
+
+        .post-content-wrapper {
+            max-height: 100px;
+            overflow: hidden;
+            position: relative;
+            transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .post-card.expanded .post-content-wrapper {
+            max-height: 2000px; /* Large enough to show all content */
+        }
+
+        .post-content-wrapper::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40px;
+            background: linear-gradient(transparent, var(--bg));
+            transition: opacity 0.3s;
+        }
+
+        .post-card.expanded .post-content-wrapper::after {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .read-more-btn {
+            background: transparent;
+            border: none;
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .post-card.expanded .read-more-btn .toggle-text::before {
+            content: 'Show Less';
+        }
+
+        .post-card:not(.expanded) .read-more-btn .toggle-text::before {
+            content: 'Read More';
+        }
+
+        .post-card.expanded .read-more-btn i {
+            transform: rotate(180deg);
+        }
+
+        .read-more-btn i {
+            transition: transform 0.3s;
+        }
+
+        .post-media {
+            display: none; /* Hidden in preview */
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .post-card.expanded .post-media {
+            display: block;
+            opacity: 1;
+        }
+
+        .post-footer {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .post-card.expanded .post-footer {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
         footer {
             text-align: center;
             padding: 4rem 0;
@@ -194,17 +288,24 @@
                         } catch (e) { console.error('Date error:', e); }
 
                         return `
-                            <article class="post-card" id="post-${post.id}">
+                            <article class="post-card" id="post-${post.id}" onclick="togglePost('${post.id}')">
                                 <span class="post-date">${dateStr}</span>
-                                <h2 class="post-title">${post.title}</h2>
+                                <h2 class="post-title" style="font-size: 1.5rem; margin-bottom: 1rem;">${post.title}</h2>
                                 
-                                ${post.media ? (post.mediaType === 'video' 
-                                    ? `<video src="${post.media}" class="post-media" controls></video>` 
-                                    : `<img src="${post.media}" class="post-media" alt="${post.title}">`) : ''}
-                                
-                                <div class="post-content">${post.content}</div>
+                                <div class="post-content-wrapper">
+                                    <div class="post-content">${post.content}</div>
+                                    
+                                    ${post.media ? (post.mediaType === 'video' 
+                                        ? `<video src="${post.media}" class="post-media" controls onclick="event.stopPropagation()"></video>` 
+                                        : `<img src="${post.media}" class="post-media" alt="${post.title}">`) : ''}
+                                </div>
 
-                                <div class="post-footer">
+                                <button class="read-more-btn">
+                                    <span class="toggle-text"></span>
+                                    <i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i>
+                                </button>
+
+                                <div class="post-footer" onclick="event.stopPropagation()">
                                     <button class="btn-share" onclick="sharePost('${post.id}', '${post.title.replace(/'/g, "\\'")}')">
                                         <i data-lucide="share-2" style="width: 16px; height: 16px;"></i> Share
                                     </button>
@@ -233,6 +334,15 @@
                     console.error('Failed to load posts:', err);
                     document.getElementById('posts-container').innerHTML = '<p style="color: #ef5350;">Failed to load updates. Please try again later.</p>';
                 });
+        }
+
+        function togglePost(id) {
+            const card = document.getElementById('post-' + id);
+            if (card) {
+                card.classList.toggle('expanded');
+                // Re-init icons if needed (though they should persist)
+                lucide.createIcons();
+            }
         }
 
         function sharePost(id, title) {
