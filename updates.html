@@ -284,6 +284,37 @@
             border-top: 1px solid var(--border);
             margin-top: 4rem;
         }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .container {
+                padding: 3rem 1.5rem;
+            }
+            h1 {
+                font-size: 2.25rem;
+            }
+            .post-title {
+                font-size: 1.5rem;
+            }
+            .single-post-view h1 {
+                font-size: 2.25rem !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 2rem 1rem;
+            }
+            h1 {
+                font-size: 1.8rem;
+            }
+            .post-card {
+                padding: 1.5rem 0.5rem;
+            }
+            .post-preview-media {
+                height: 160px;
+            }
+        }
     </style>
 </head>
 <body>
