@@ -289,7 +289,7 @@
 <body>
     <div class="container">
         <header>
-            <a href="index.html" class="back-link">
+            <a href="/" class="back-link">
                 <i data-lucide="arrow-left" style="width: 16px;"></i>
                 Back to Lab
             </a>
@@ -324,7 +324,7 @@
                         // SINGLE POST VIEW
                         const post = posts.find(p => p.id == targetPostId);
                         if (!post) {
-                            container.innerHTML = '<p style="text-align: center;">Post not found. <a href="updates.html">Back to updates</a></p>';
+                            container.innerHTML = '<p style="text-align: center;">Post not found. <a href="/updates">Back to updates</a></p>';
                             return;
                         }
 
@@ -335,7 +335,7 @@
 
                         container.innerHTML = `
                             <div class="single-post-view">
-                                <a href="updates.html" class="back-btn">
+                                <a href="/updates" class="back-btn">
                                     <i data-lucide="arrow-left" style="width: 18px;"></i>
                                     Back to Updates
                                 </a>
@@ -366,7 +366,7 @@
                             } catch (e) { console.error('Date error:', e); }
 
                             return `
-                                <article class="post-card" id="post-${post.id}" onclick="window.location.href='updates.html?post=${post.id}'">
+                                <article class="post-card" id="post-${post.id}" onclick="window.location.href='/updates?post=${post.id}'">
                                     <span class="post-date">${dateStr}</span>
                                     <h2 class="post-title" style="font-size: 1.75rem; margin-bottom: 1rem;">${post.title}</h2>
                                     

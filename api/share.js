@@ -8,7 +8,7 @@ module.exports = async function handler(req, res) {
   const id = parseInt(req.query.id);
   if (!id) {
     // If no ID is provided, just redirect to the main updates page
-    res.setHeader('Location', '/updates.html');
+    res.setHeader('Location', '/updates');
     return res.status(302).end();
   }
 
@@ -22,7 +22,7 @@ module.exports = async function handler(req, res) {
     await redis.disconnect();
 
     if (!post) {
-      res.setHeader('Location', '/updates.html');
+      res.setHeader('Location', '/updates');
       return res.status(302).end();
     }
 
@@ -38,7 +38,7 @@ module.exports = async function handler(req, res) {
     // If post has media, point to our image pipeline!
     const imageUrl = post.media ? `${baseUrl}/api/image?id=${post.id}` : `${baseUrl}/lab_logo.png`;
     const postUrl = `${baseUrl}/api/share?id=${post.id}`;
-    const redirectUrl = `${baseUrl}/updates.html?post=${post.id}`;
+    const redirectUrl = `${baseUrl}/updates?post=${post.id}`;
 
     // Return the HTML skeleton
     const html = `
@@ -82,7 +82,7 @@ module.exports = async function handler(req, res) {
   } catch (err) {
     console.error('Share rendering error', err);
     try { await redis.disconnect(); } catch(e){}
-    res.setHeader('Location', '/updates.html');
+    res.setHeader('Location', '/updates');
     return res.status(302).end();
   }
 };

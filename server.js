@@ -15,6 +15,11 @@ app.use(bodyParser.json());
 app.use(express.static(__dirname));
 app.use('/uploads', express.static(UPLOADS_DIR));
 
+// Clean URLs
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+app.get('/updates', (req, res) => res.sendFile(path.join(__dirname, 'updates.html')));
+app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'admin.html')));
+
 // Multer Storage Configuration
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
