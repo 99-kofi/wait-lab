@@ -516,6 +516,29 @@
             color: var(--text-sub);
             font-size: 0.9rem;
             margin-bottom: 1.5rem;
+            flex-grow: 1;
+        }
+
+        .project-logo {
+            width: 64px;
+            height: 64px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            transition: transform 0.3s;
+        }
+
+        .project-card:hover .project-logo {
+            transform: scale(1.05);
+            border-color: var(--secondary);
+        }
+
+        .project-link {
+            text-decoration: none;
+            color: inherit;
+            display: flex;
         }
 
         /* Philosophy Section */
@@ -1050,22 +1073,38 @@
                     
                     <h3 class="project-tag" style="margin-bottom: 2rem;">EXPERIMENTAL (LAB)</h3>
                     <div class="project-grid" style="margin-bottom: 4rem;">
-                        <div class="project-card">
-                            <h3 class="project-title">OBALA</h3>
-                            <p class="project-brief">ASR model for Twi and local languages.</p>
-                        </div>
-                        <div class="project-card">
-                            <h3 class="project-title">MAGANA AI</h3>
-                            <p class="project-brief">Conversational Hausa chatbot.</p>
-                        </div>
-                        <div class="project-card">
-                            <h3 class="project-title">SOMA OBI</h3>
-                            <p class="project-brief">Mental health chatbot.</p>
-                        </div>
-                        <div class="project-card">
-                            <h3 class="project-title">Maize Sentinel 🌾</h3>
-                            <p class="project-brief">Plant disease detection system.</p>
-                        </div>
+                        <a href="https://african-tts.vercel.app" target="_blank" class="project-link">
+                            <div class="project-card" style="display: flex; flex-direction: column;">
+                                <img src="african_tts_logo.png" alt="African TTS Logo" class="project-logo">
+                                <h3 class="project-title">AFRICAN TTS</h3>
+                                <p class="project-brief">Real-time professional translation and high-fidelity speech synthesis for English to Twi.</p>
+                                <span class="project-tag" style="font-size: 0.6rem; color: var(--secondary);">Visit Project -></span>
+                            </div>
+                        </a>
+                        <a href="https://magana-llm.vercel.app" target="_blank" class="project-link">
+                            <div class="project-card" style="display: flex; flex-direction: column;">
+                                <img src="magana_llm_logo.png" alt="Magana LLM Logo" class="project-logo">
+                                <h3 class="project-title">MAGANA LLM</h3>
+                                <p class="project-brief">Your Personal Hausa AI Guide—Teacher mode, reasoning, and live search.</p>
+                                <span class="project-tag" style="font-size: 0.6rem; color: var(--secondary);">Visit Project -></span>
+                            </div>
+                        </a>
+                        <a href="https://soma-obi.vercel.app" target="_blank" class="project-link">
+                            <div class="project-card" style="display: flex; flex-direction: column;">
+                                <img src="soma_obi_logo.png" alt="Soma Obi Logo" class="project-logo">
+                                <h3 class="project-title">SOMA OBI</h3>
+                                <p class="project-brief">A safe space for soulful connections and emotional well-being.</p>
+                                <span class="project-tag" style="font-size: 0.6rem; color: var(--secondary);">Visit Project -></span>
+                            </div>
+                        </a>
+                        <a href="https://obala-palava.vercel.app" target="_blank" class="project-link">
+                            <div class="project-card" style="display: flex; flex-direction: column;">
+                                <img src="obala_palava_logo.png" alt="Obala Palava Logo" class="project-logo">
+                                <h3 class="project-title">OBALA PALAVA</h3>
+                                <p class="project-brief">Translate Di Street. Authentic Pidgin translation for the digital age.</p>
+                                <span class="project-tag" style="font-size: 0.6rem; color: var(--secondary);">Visit Project -></span>
+                            </div>
+                        </a>
                     </div>
 
                     <h3 class="project-tag" style="margin-bottom: 2rem; color: var(--secondary);">DEPLOYED (TECH)</h3>
