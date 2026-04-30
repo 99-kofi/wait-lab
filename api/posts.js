@@ -1,4 +1,5 @@
 const { createClient } = require('redis');
+const jwt = require('jsonwebtoken');
 
 module.exports = async function handler(req, res) {
   const POSTS_KEY = 'wait-labs-posts';
@@ -16,7 +17,16 @@ module.exports = async function handler(req, res) {
   const checkAuth = () => {
     const authHeader = req.headers.authorization || '';
     const token = authHeader.replace('Bearer ', '').trim();
-    return token === process.env.ADMIN_PASSWORD;
+    
+    if (token === process.env.ADMIN_PASSWORD) return true;
+    
+    const jwtSecret = process.env.JWT_SECRET || process.env.ADMIN_PASSWORD || 'fallback_secret_key';
+    try {
+      const decoded = jwt.verify(token, jwtSecret);
+      return !!decoded.admin;
+    } catch (err) {
+      return false;
+    }
   };
 
   try {
@@ -36,6 +46,12 @@ module.exports = async function handler(req, res) {
       if (!title || !content) {
         await redis.disconnect();
         return res.status(400).json({ error: 'Title and content are required' });
+      }
+
+      // Payload size check (5MB limit)
+      if (media && media.length > 7000000) {
+        await redis.disconnect();
+        return res.status(413).json({ error: 'Payload too large. Media file must be under 5MB.' });
       }
       
       const posts = await getPosts();
@@ -65,6 +81,12 @@ module.exports = async function handler(req, res) {
       if (!id || !title || !content) {
         await redis.disconnect();
         return res.status(400).json({ error: 'ID, title and content are required' });
+      }
+
+      // Payload size check (5MB limit)
+      if (media && media.length > 7000000) {
+        await redis.disconnect();
+        return res.status(413).json({ error: 'Payload too large. Media file must be under 5MB.' });
       }
       
       let posts = await getPosts();

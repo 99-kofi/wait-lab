@@ -6,6 +6,7 @@
     <title>WAIT LAB | Latest Updates</title>
     <link rel="icon" href="lab_logo.png" type="image/png">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -371,13 +372,13 @@
                                     Back to Updates
                                 </a>
                                 <span class="post-date">${dateStr}</span>
-                                <h1 style="font-size: 3rem; margin-bottom: 2rem;">${post.title}</h1>
+                                <h1 style="font-size: 3rem; margin-bottom: 2rem;">${DOMPurify.sanitize(post.title)}</h1>
                                 
                                 ${post.media ? (post.mediaType === 'video' 
                                     ? `<video src="${post.media}" class="post-cover-media" controls></video>` 
-                                    : `<img src="${post.media}" class="post-cover-media" alt="${post.title}">`) : ''}
+                                    : `<img src="${post.media}" class="post-cover-media" alt="${DOMPurify.sanitize(post.title)}">`) : ''}
 
-                                <div class="post-content" style="font-size: 1.25rem; line-height: 1.8; color: var(--text-main);">${post.content}</div>
+                                <div class="post-content" style="font-size: 1.25rem; line-height: 1.8; color: var(--text-main);">${DOMPurify.sanitize(post.content)}</div>
 
                                 <div class="post-footer" style="opacity: 1; pointer-events: auto; justify-content: flex-start; margin-top: 4rem;">
                                     <button class="btn-share" onclick="sharePost('${post.id}', '${post.title.replace(/'/g, "\\'")}')">
@@ -399,14 +400,14 @@
                             return `
                                 <article class="post-card" id="post-${post.id}" onclick="window.location.href='/updates?post=${post.id}'">
                                     <span class="post-date">${dateStr}</span>
-                                    <h2 class="post-title" style="font-size: 1.75rem; margin-bottom: 1rem;">${post.title}</h2>
+                                    <h2 class="post-title" style="font-size: 1.75rem; margin-bottom: 1rem;">${DOMPurify.sanitize(post.title)}</h2>
                                     
                                     ${post.media ? (post.mediaType === 'video' 
                                         ? `<div style="position: relative;"><video src="${post.media}" class="post-preview-media"></video><div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.5); border-radius: 50%; padding: 10px;"><i data-lucide="play" style="color: white; width: 24px; height: 24px;"></i></div></div>` 
-                                        : `<img src="${post.media}" class="post-preview-media" alt="${post.title}">`) : ''}
+                                        : `<img src="${post.media}" class="post-preview-media" alt="${DOMPurify.sanitize(post.title)}">`) : ''}
 
                                     <div class="post-content-wrapper" style="max-height: 80px;">
-                                        <div class="post-content" style="font-size: 1rem;">${post.content}</div>
+                                        <div class="post-content" style="font-size: 1rem;">${DOMPurify.sanitize(post.content)}</div>
                                     </div>
 
                                     <div class="read-more-btn">

@@ -6,6 +6,7 @@
     <title>WAIT LAB | Admin Dashboard</title>
     <link rel="icon" href="lab_logo.png" type="image/png">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -299,7 +300,8 @@
                 });
                 
                 if (res.ok) {
-                    localStorage.setItem('admin_password', pwd);
+                    const data = await res.json();
+                    localStorage.setItem('admin_password', data.token || pwd);
                     authOverlay.style.display = 'none';
                     mainContent.style.display = 'block';
                     loadDashboard();
@@ -359,7 +361,7 @@
                                     ? `<video src="${post.media}" class="post-media-preview"></video>` 
                                     : `<img src="${post.media}" class="post-media-preview">`) : ''}
                                 <div class="post-info">
-                                    <h3>${post.title}</h3>
+                                    <h3>${DOMPurify.sanitize(post.title)}</h3>
                                     <p>${new Date(post.date).toLocaleString()}</p>
                                 </div>
                             </div>
