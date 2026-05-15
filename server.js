@@ -3,50 +3,39 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
-const multer = require('multer');
 
 const app = express();
 const PORT = 3000;
 const DATA_FILE = path.join(__dirname, 'data.json');
-const UPLOADS_DIR = path.join(__dirname, 'uploads');
 
 app.use(cors());
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.static(__dirname));
-app.use('/uploads', express.static(UPLOADS_DIR));
 
 // Clean URLs
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 app.get('/updates', (req, res) => res.sendFile(path.join(__dirname, 'updates.html')));
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'admin.html')));
 
-// Multer Storage Configuration
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, UPLOADS_DIR);
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname));
-    }
-});
-
-const upload = multer({ 
-    storage: storage,
-    fileFilter: (req, file, cb) => {
-        const filetypes = /jpeg|jpg|png|gif|mp4|mov|avi/;
-        const mimetype = filetypes.test(file.mimetype);
-        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-        if (mimetype && extname) {
-            return cb(null, true);
-        }
-        cb(new Error("Only images and videos are allowed!"));
-    }
-});
 
 // Initialize data file if it doesn't exist
 if (!fs.existsSync(DATA_FILE)) {
     fs.writeFileSync(DATA_FILE, JSON.stringify({ visits: 0, posts: [] }, null, 2));
 }
+
+// Local authentication endpoint for testing
+app.post('/api/auth', (req, res) => {
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.replace('Bearer ', '').trim();
+    
+    // Local testing password is 'admin'
+    if (token === 'admin' || token === 'local_test_token') {
+        res.json({ success: true, token: 'local_test_token' });
+    } else {
+        res.status(401).json({ error: 'Unauthorized' });
+    }
+});
 
 // Get site stats
 app.get('/api/stats', (req, res) => {
@@ -73,51 +62,73 @@ app.get('/api/posts', (req, res) => {
     }
 });
 
-// Add a new post with media
-app.post('/api/posts', (req, res, next) => {
+// Add a new post
+app.post('/api/posts', (req, res) => {
     console.log('--- POST /api/posts ---');
-    upload.single('media')(req, res, (err) => {
-        if (err instanceof multer.MulterError) {
-            console.error('Multer error:', err);
-            return res.status(400).json({ error: 'Upload failed', details: err.message });
-        } else if (err) {
-            console.error('Unknown upload error:', err);
-            return res.status(500).json({ error: 'Server error during upload', details: err.message });
-        }
+    const { title, content, author, date, media, mediaType } = req.body || {};
+
+    if (!title || !content) {
+        return res.status(400).json({ error: 'Title and content are required' });
+    }
+
+    try {
+        const data = JSON.parse(fs.readFileSync(DATA_FILE));
+        const newPost = {
+            id: Date.now(),
+            title,
+            content,
+            author: author || 'Admin',
+            date: date || new Date().toISOString(),
+            media: media || null,
+            mediaType: mediaType || null
+        };
+        data.posts.unshift(newPost);
+        fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+        console.log('Post saved successfully');
+        res.json(newPost);
+    } catch (err) {
+        console.error('Error saving post:', err);
+        res.status(500).json({ error: 'Failed to save post' });
+    }
+});
+
+// Edit a post
+app.put('/api/posts', (req, res) => {
+    console.log('--- PUT /api/posts ---');
+    const { id, title, content, author, date, media, mediaType } = req.body || {};
+
+    if (!id || !title || !content) {
+        return res.status(400).json({ error: 'ID, title and content are required' });
+    }
+
+    try {
+        const data = JSON.parse(fs.readFileSync(DATA_FILE));
+        const index = data.posts.findIndex(p => p.id === parseInt(id));
         
-        const { title, content, author, date } = req.body;
-        console.log('Body:', { title, content, author, date });
-        console.log('File:', req.file ? req.file.filename : 'none');
-
-        if (!title || !content) {
-            return res.status(400).json({ error: 'Title and content are required' });
-        }
-
-        try {
-            const data = JSON.parse(fs.readFileSync(DATA_FILE));
-            const newPost = {
-                id: Date.now(),
+        if (index !== -1) {
+            data.posts[index] = {
+                ...data.posts[index],
                 title,
                 content,
-                author: author || 'Admin',
-                date: date || new Date().toISOString(),
-                media: req.file ? `/uploads/${req.file.filename}` : null,
-                mediaType: req.file ? (req.file.mimetype.startsWith('video') ? 'video' : 'image') : null
+                media: media !== undefined ? media : data.posts[index].media,
+                mediaType: mediaType !== undefined ? mediaType : data.posts[index].mediaType
             };
-            data.posts.unshift(newPost);
             fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
-            console.log('Post saved successfully');
-            res.json(newPost);
-        } catch (err) {
-            console.error('Error saving post:', err);
-            res.status(500).json({ error: 'Failed to save post' });
+            console.log('Post updated successfully');
+            res.json(data.posts[index]);
+        } else {
+            res.status(404).json({ error: 'Post not found' });
         }
-    });
+    } catch (err) {
+        console.error('Error updating post:', err);
+        res.status(500).json({ error: 'Failed to update post' });
+    }
 });
 
 // Delete a post
-app.delete('/api/posts/:id', (req, res) => {
-    const id = parseInt(req.params.id);
+app.delete('/api/posts', (req, res) => {
+    const id = parseInt(req.query.id);
+    if (!id) return res.status(400).json({ error: 'Post id required' });
     const data = JSON.parse(fs.readFileSync(DATA_FILE));
     data.posts = data.posts.filter(p => p.id !== id);
     fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));

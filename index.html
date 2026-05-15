@@ -7,6 +7,7 @@
     <title>WAIT Technologies | Emerging AI Research</title>
     <link rel="icon" href="lab_logo.png" type="image/png">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -1444,9 +1445,9 @@
                             <div class="card" onclick="window.location.href='/updates?post=${post.id}'" style="cursor: pointer;">
                                 ${post.media ? (post.mediaType === 'video' 
                                     ? `<div style="position: relative; height: 160px; overflow: hidden; border-radius: 4px; margin-bottom: 1.5rem;"><video src="${post.media}" style="width: 100%; height: 100%; object-fit: cover;"></video><div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.5); border-radius: 50%; padding: 8px;"><i data-lucide="play" style="color: white; width: 16px; height: 16px;"></i></div></div>`
-                                    : `<img src="${post.media}" style="width: 100%; height: 160px; object-fit: cover; border-radius: 4px; margin-bottom: 1.5rem;" alt="${post.title}">`) : ''}
+                                    : `<img src="${post.media}" style="width: 100%; height: 160px; object-fit: cover; border-radius: 4px; margin-bottom: 1.5rem;" alt="${DOMPurify.sanitize(post.title)}">`) : ''}
                                 <span class="project-tag">${new Date(post.date).toLocaleDateString()}</span>
-                                <h3 class="card-title">${post.title}</h3>
+                                <h3 class="card-title">${DOMPurify.sanitize(post.title)}</h3>
                             </div>
                         `).join('');
                         try { lucide.createIcons(); } catch(e){}

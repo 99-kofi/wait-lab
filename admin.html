@@ -7,6 +7,8 @@
     <link rel="icon" href="lab_logo.png" type="image/png">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -91,7 +93,7 @@
             color: var(--text-sub);
         }
 
-        input, textarea {
+        input {
             width: 100%;
             padding: 0.8rem;
             background: #1a1a1a;
@@ -101,9 +103,38 @@
             font-family: inherit;
         }
 
-        textarea {
-            height: 150px;
-            resize: vertical;
+        /* Quill Custom Dark Theme */
+        .ql-toolbar.ql-snow {
+            border-color: var(--border);
+            background: var(--surface);
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+        }
+        .ql-container.ql-snow {
+            border-color: var(--border);
+            background: #1a1a1a;
+            border-bottom-left-radius: 4px;
+            border-bottom-right-radius: 4px;
+            min-height: 200px;
+        }
+        .ql-editor {
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 1rem;
+            min-height: 200px;
+        }
+        .ql-snow .ql-stroke {
+            stroke: var(--text-sub);
+        }
+        .ql-snow .ql-fill, .ql-snow .ql-stroke.ql-fill {
+            fill: var(--text-sub);
+        }
+        .ql-snow .ql-picker {
+            color: var(--text-sub);
+        }
+        .ql-snow .ql-picker-options {
+            background-color: var(--surface);
+            border-color: var(--border);
         }
 
         .btn {
@@ -235,7 +266,7 @@
                 </div>
                 <div class="form-group">
                     <label for="content">Content</label>
-                    <textarea id="content" required placeholder="Write your post here..."></textarea>
+                    <div id="editor-container"></div>
                 </div>
                 <div class="form-group">
                     <label for="media">Media (Image or Video)</label>
@@ -256,6 +287,20 @@
     <script>
         let currentPosts = [];
         let editingPostId = null;
+
+        let quill = new Quill('#editor-container', {
+            theme: 'snow',
+            placeholder: 'Write your post here...',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, false] }],
+                    ['bold', 'italic', 'underline'],
+                    ['blockquote', 'code-block'],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    ['link', 'clean']
+                ]
+            }
+        });
 
         // --- AUTHENTICATION LOGIC ---
         const authOverlay = document.getElementById('auth-overlay');
@@ -378,7 +423,13 @@
         document.getElementById('publish-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const title = document.getElementById('title').value;
-            const content = document.getElementById('content').value;
+            const content = quill.root.innerHTML;
+
+            if (content === '<p><br></p>') {
+                alert('Content cannot be empty');
+                return;
+            }
+
             const mediaFile = document.getElementById('media').files[0];
 
             let mediaBase64 = null;
@@ -420,6 +471,7 @@
             })
             .then(() => {
                 document.getElementById('publish-form').reset();
+                quill.setContents([]);
                 if (editingPostId) {
                     editingPostId = null;
                     document.querySelector('#publish-form button[type="submit"]').innerText = 'Publish Post';
@@ -439,7 +491,7 @@
             if (post) {
                 editingPostId = post.id;
                 document.getElementById('title').value = post.title;
-                document.getElementById('content').value = post.content;
+                quill.root.innerHTML = post.content;
                 document.querySelector('#publish-form button[type="submit"]').innerText = 'Update Post';
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
