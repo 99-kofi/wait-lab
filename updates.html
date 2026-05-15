@@ -96,6 +96,8 @@
             font-size: 1.1rem;
             margin-bottom: 2rem;
             line-height: 1.8;
+            word-wrap: break-word;
+            overflow-wrap: anywhere;
         }
 
         .post-content p {
@@ -389,9 +391,16 @@
             .post-card {
                 padding: 1.5rem 0.5rem;
             }
-            .post-preview-media {
-                height: 160px;
-            }
+        }
+
+        /* iOS Safari fixes */
+        input, select, textarea {
+            font-size: 16px !important;
+            -webkit-appearance: none;
+            border-radius: 4px;
+        }
+        button, .btn {
+            -webkit-appearance: none;
         }
     </style>
 </head>
