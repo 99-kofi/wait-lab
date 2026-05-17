@@ -39,6 +39,11 @@ module.exports = async function handler(req, res) {
         return res.status(429).json({ error: 'Too many login attempts. Please try again later.' });
       }
       
+      if (!process.env.ADMIN_PASSWORD) {
+        await redis.disconnect();
+        return res.status(500).json({ error: 'Server misconfiguration: ADMIN_PASSWORD is not set in production.' });
+      }
+
       // 2. Check if token is the raw password (Login attempt)
       if (token === process.env.ADMIN_PASSWORD) {
         await redis.del(rateLimitKey); // Clear rate limit on success
@@ -51,13 +56,13 @@ module.exports = async function handler(req, res) {
       }
 
       await redis.disconnect();
-      return res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: `Unauthorized. Token provided did not match password.` });
     } catch (error) {
       console.error('Auth error:', error);
       if (redis) {
         try { await redis.disconnect(); } catch (e) {}
       }
-      return res.status(500).json({ error: 'Internal server error' });
+      return res.status(500).json({ error: `Internal server error: ${error.message}` });
     }
   }
   

@@ -415,7 +415,8 @@
                     mainContent.style.display = 'block';
                     loadDashboard();
                 } else {
-                    alert('Incorrect password! Access denied.');
+                    const errData = await res.json().catch(() => ({}));
+                    alert(`Access denied: ${errData.error || 'Server error'}`);
                 }
             } catch(err) {
                 alert('Verification encountered an error.');
