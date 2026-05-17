@@ -1,5 +1,6 @@
 const { createClient } = require('redis');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
 module.exports = async function handler(req, res) {
   if (req.method === 'POST') {
@@ -9,7 +10,11 @@ module.exports = async function handler(req, res) {
       
       const authHeader = req.headers.authorization || '';
       const token = authHeader.replace('Bearer ', '').trim();
-      const jwtSecret = process.env.JWT_SECRET || process.env.ADMIN_PASSWORD || 'fallback_secret_key';
+      
+      const fallbackSecret = process.env.ADMIN_PASSWORD 
+        ? crypto.createHash('sha256').update(process.env.ADMIN_PASSWORD).digest('hex') 
+        : 'fallback_secret_key';
+      const jwtSecret = process.env.JWT_SECRET || fallbackSecret;
       
       // 1. Check if token is already a valid JWT (Session check attempt)
       // Do this BEFORE rate limiting, so valid sessions don't get locked out.
@@ -26,7 +31,8 @@ module.exports = async function handler(req, res) {
       }
 
       // Rate Limiting for login attempts
-      const ip = req.headers['x-forwarded-for'] || req.connection?.remoteAddress || 'unknown';
+      // Use x-real-ip to prevent X-Forwarded-For spoofing bypass
+      const ip = req.headers['x-real-ip'] || req.connection?.remoteAddress || 'unknown';
       const rateLimitKey = `rate_limit:${ip}`;
       const attempts = await redis.incr(rateLimitKey);
       
@@ -45,7 +51,11 @@ module.exports = async function handler(req, res) {
       }
 
       // 2. Check if token is the raw password (Login attempt)
-      if (token === process.env.ADMIN_PASSWORD) {
+      // Hash both token and expected password to ensure equal length for timingSafeEqual
+      const tokenHash = crypto.createHash('sha256').update(token || '').digest();
+      const expectedHash = crypto.createHash('sha256').update(process.env.ADMIN_PASSWORD).digest();
+      
+      if (crypto.timingSafeEqual(tokenHash, expectedHash)) {
         await redis.del(rateLimitKey); // Clear rate limit on success
         
         // Issue JWT

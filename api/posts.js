@@ -1,5 +1,6 @@
 const { createClient } = require('redis');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
 module.exports = async function handler(req, res) {
   const POSTS_KEY = 'wait-labs-posts';
@@ -18,9 +19,15 @@ module.exports = async function handler(req, res) {
     const authHeader = req.headers.authorization || '';
     const token = authHeader.replace('Bearer ', '').trim();
     
-    if (token === process.env.ADMIN_PASSWORD) return true;
+    const tokenHash = crypto.createHash('sha256').update(token || '').digest();
+    const expectedHash = crypto.createHash('sha256').update(process.env.ADMIN_PASSWORD || '').digest();
     
-    const jwtSecret = process.env.JWT_SECRET || process.env.ADMIN_PASSWORD || 'fallback_secret_key';
+    if (process.env.ADMIN_PASSWORD && crypto.timingSafeEqual(tokenHash, expectedHash)) return true;
+    
+    const fallbackSecret = process.env.ADMIN_PASSWORD 
+      ? crypto.createHash('sha256').update(process.env.ADMIN_PASSWORD).digest('hex') 
+      : 'fallback_secret_key';
+    const jwtSecret = process.env.JWT_SECRET || fallbackSecret;
     try {
       const decoded = jwt.verify(token, jwtSecret);
       return !!decoded.admin;
