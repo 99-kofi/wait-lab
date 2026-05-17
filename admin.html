@@ -307,7 +307,10 @@
     <div class="container" id="main-content" style="display: none;">
         <header>
             <h1>WAIT LAB | Admin</h1>
-            <a href="/" style="color: var(--text-sub); text-decoration: none;">View Site</a>
+            <div style="display: flex; align-items: center; gap: 1.5rem;">
+                <a href="/" style="color: var(--text-sub); text-decoration: none;">View Site</a>
+                <button onclick="logout()" class="btn" style="background: #ef5350; padding: 0.5rem 1.2rem; font-size: 0.85rem;">Logout</button>
+            </div>
         </header>
 
         <div class="stats-grid">
@@ -374,6 +377,13 @@
             return localStorage.getItem('admin_password');
         }
 
+        function logout() {
+            localStorage.removeItem('admin_password');
+            mainContent.style.display = 'none';
+            authOverlay.style.display = 'flex';
+            document.getElementById('auth-password').value = '';
+        }
+
         async function checkAuth() {
             const token = getAuthToken();
             if (token) {
@@ -383,12 +393,16 @@
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
                     if (res.ok) {
+                        const data = await res.json();
+                        // Update stored token in case server refreshed it
+                        if (data.token) localStorage.setItem('admin_password', data.token);
                         authOverlay.style.display = 'none';
                         mainContent.style.display = 'block';
                         loadDashboard();
                         return;
                     }
                 } catch(e) {}
+                // Token was invalid/expired, clear it
                 localStorage.removeItem('admin_password');
             }
             authOverlay.style.display = 'flex';
