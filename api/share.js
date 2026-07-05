@@ -1,5 +1,46 @@
 const { createClient } = require('redis');
 
+const MAX_DESCRIPTION_LENGTH = 150;
+
+function escapeHtml(value = '') {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function decodeHtmlEntities(value = '') {
+  return String(value)
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, code) => String.fromCharCode(parseInt(code, 16)));
+}
+
+function stripHtml(value = '') {
+  return decodeHtmlEntities(value)
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, ' ')
+    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, ' ')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function buildDescription(content = '') {
+  const plainText = stripHtml(content);
+  if (!plainText) return 'Latest update from WAIT LAB.';
+
+  if (plainText.length <= MAX_DESCRIPTION_LENGTH) return plainText;
+
+  return `${plainText.slice(0, MAX_DESCRIPTION_LENGTH).trimEnd()}...`;
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -32,8 +73,8 @@ module.exports = async function handler(req, res) {
     const host = req.headers.host || 'waitlab.space';
     const baseUrl = `${protocol}://${host}`;
 
-    const title = post.title.replace(/"/g, '&quot;');
-    const description = post.content.substring(0, 150).replace(/"/g, '&quot;') + '...';
+    const title = escapeHtml(stripHtml(post.title));
+    const description = escapeHtml(buildDescription(post.content));
     
     // If post has media, point to our image pipeline!
     const imageUrl = post.media ? `${baseUrl}/api/image?id=${post.id}` : `${baseUrl}/lab_logo.png`;
@@ -85,4 +126,11 @@ module.exports = async function handler(req, res) {
     res.setHeader('Location', '/updates');
     return res.status(302).end();
   }
+};
+
+module.exports._private = {
+  buildDescription,
+  decodeHtmlEntities,
+  escapeHtml,
+  stripHtml
 };
