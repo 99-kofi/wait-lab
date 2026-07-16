@@ -523,7 +523,7 @@
         }
 
         function sharePost(id, title) {
-            const shareUrl = window.location.origin + '/share?id=' + id;
+            const shareUrl = window.location.origin + '/api/share?id=' + id;
             
             if (navigator.share) {
                 // If browser supports native sharing (mobile, Safari, etc)
