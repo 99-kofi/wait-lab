@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WAIT LAB | Latest Updates</title>
+    <link rel="icon" href="lab_logo.png" type="image/png">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --surface: #121212;
+            --primary: #5c6bc0;
+            --accent: #ff8a65;
+            --secondary: #66bb6a;
+            --text-main: #f5f5f5;
+            --text-sub: #a0a0a0;
+            --border: #262626;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            line-height: 1.75;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        header {
+            margin-bottom: 4rem;
+            text-align: center;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-sub);
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: var(--primary);
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 1rem;
+        }
+
+        .posts-container {
+            display: flex;
+            flex-direction: column;
+            gap: 4rem;
+        }
+
+        .post-card {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 4rem;
+        }
+
+        .post-date {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .post-title {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            line-height: 1.3;
+        }
+
+        .post-content {
+            color: var(--text-sub);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            line-height: 1.8;
+            word-wrap: break-word;
+            overflow-wrap: anywhere;
+        }
+
+        .post-content p {
+            margin-bottom: 1.5rem;
+        }
+
+        .post-content p:last-child {
+            margin-bottom: 0;
+        }
+
+        .post-content h1, .post-content h2, .post-content h3 {
+            color: var(--text-main);
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        .post-content h1 { font-size: 2rem; }
+        .post-content h2 { font-size: 1.75rem; }
+        .post-content h3 { font-size: 1.5rem; }
+
+        .post-content ul, .post-content ol {
+            margin-bottom: 1.5rem;
+            padding-left: 2rem;
+        }
+
+        .post-content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .post-content blockquote {
+            border-left: 4px solid var(--primary);
+            margin: 2rem 0;
+            color: var(--text-sub);
+            font-style: italic;
+            background: rgba(92, 107, 192, 0.05);
+            padding: 1.5rem;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .post-content blockquote p:last-child {
+            margin-bottom: 0;
+        }
+
+        .post-content pre {
+            background: #1e1e1e;
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 2rem 0;
+            border: 1px solid var(--border);
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.95rem;
+            color: #d4d4d4;
+            white-space: pre;
+        }
+
+        .post-content code {
+            font-family: 'Roboto Mono', monospace;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .post-content pre code {
+            background: transparent;
+            padding: 0;
+            border-radius: 0;
+        }
+
+        .post-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+        }
+
+        .post-media {
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+            max-height: 500px;
+            object-fit: cover;
+        }
+
+        .post-footer {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .btn-share {
+            background: transparent;
+            color: var(--text-sub);
+            border: 1px solid var(--border);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .btn-share:hover {
+            color: var(--primary);
+            border-color: var(--primary);
+            background: rgba(92, 107, 192, 0.1);
+        }
+
+        video.post-media {
+            background: #000;
+            object-fit: contain;
+        }
+
+        /* Preview / Expand Styles */
+        .post-card {
+            cursor: pointer;
+            transition: background 0.3s, padding 0.3s;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid transparent;
+        }
+
+        .post-card:hover {
+            background: rgba(255, 255, 255, 0.03);
+            border-color: var(--border);
+        }
+
+        .post-content-wrapper {
+            max-height: 100px;
+            overflow: hidden;
+            position: relative;
+            transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .post-card.expanded .post-content-wrapper {
+            max-height: 2000px; /* Large enough to show all content */
+        }
+
+        .post-content-wrapper::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40px;
+            background: linear-gradient(transparent, var(--bg));
+            transition: opacity 0.3s;
+        }
+
+        .post-card.expanded .post-content-wrapper::after {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .read-more-btn {
+            background: transparent;
+            border: none;
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .post-card.expanded .read-more-btn .toggle-text::before {
+            content: 'Show Less';
+        }
+
+        .post-card:not(.expanded) .read-more-btn .toggle-text::before {
+            content: 'Read More';
+        }
+
+        .post-card.expanded .read-more-btn i {
+            transform: rotate(180deg);
+        }
+
+        .read-more-btn i {
+            transition: transform 0.3s;
+        }
+
+        .post-media {
+            display: none; /* Hidden in preview */
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .post-card.expanded .post-media {
+            display: block;
+            opacity: 1;
+        }
+
+        .post-footer {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .post-card.expanded .post-footer {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* New Refined Styles */
+        .single-post-view {
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .post-preview-media {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border: 1px solid var(--border);
+        }
+
+        .post-cover-media {
+            width: 100%;
+            border-radius: 12px;
+            margin: 2rem 0;
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 2rem;
+            transition: transform 0.2s;
+        }
+
+        .back-btn:hover {
+            transform: translateX(-5px);
+        }
+
+        footer {
+            text-align: center;
+            padding: 4rem 0;
+            color: var(--text-sub);
+            font-size: 0.8rem;
+            border-top: 1px solid var(--border);
+            margin-top: 4rem;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .container {
+                padding: 3rem 1.5rem;
+            }
+            h1 {
+                font-size: 2.25rem;
+            }
+            .post-title {
+                font-size: 1.5rem;
+            }
+            .single-post-view h1 {
+                font-size: 2.25rem !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 2rem 1rem;
+            }
+            h1 {
+                font-size: 1.8rem;
+            }
+            .post-card {
+                padding: 1.5rem 0.5rem;
+            }
+        }
+
+        /* iOS Safari fixes */
+        input, select, textarea {
+            font-size: 16px !important;
+            -webkit-appearance: none;
+            border-radius: 4px;
+        }
+        button, .btn {
+            -webkit-appearance: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="/" class="back-link">
+                <i data-lucide="arrow-left" style="width: 16px;"></i>
+                Back to Lab
+            </a>
+            <h1>Latest Updates</h1>
+            <p style="color: var(--text-sub);">News, research insights, and technological milestones from WAIT LABS.</p>
+        </header>
+
+        <div id="posts-container" class="posts-container">
+            <!-- Posts loaded from API -->
+            <p>Loading updates...</p>
+        </div>
+
+        <footer>
+            © 2026 WAIT LAB // EMERGING AI RESEARCH
+        </footer>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        function loadPosts() {
+            fetch('/api/posts')
+                .then(res => res.json())
+                .then(posts => {
+                    const container = document.getElementById('posts-container');
+                    const mainHeader = document.querySelector('header');
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const targetPostId = urlParams.get('post');
+
+                    if (targetPostId) {
+                        if (mainHeader) mainHeader.style.display = 'none';
+                        // SINGLE POST VIEW
+                        const post = posts.find(p => p.id == targetPostId);
+                        if (!post) {
+                            container.innerHTML = '<p style="text-align: center;">Post not found. <a href="/updates">Back to updates</a></p>';
+                            return;
+                        }
+
+                        // Update page title
+                        document.title = post.title + " | WAIT LAB";
+                        
+                        let dateStr = post.date ? new Date(post.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) : 'Recent Update';
+
+                        container.innerHTML = `
+                            <div class="single-post-view">
+                                <a href="/updates" class="back-btn">
+                                    <i data-lucide="arrow-left" style="width: 18px;"></i>
+                                    Back to Updates
+                                </a>
+                                <span class="post-date">${dateStr}</span>
+                                <h1 style="font-size: 3rem; margin-bottom: 2rem;">${DOMPurify.sanitize(post.title)}</h1>
+                                
+                                ${post.media ? (post.mediaType === 'video' 
+                                    ? `<video src="${post.media}" class="post-cover-media" controls></video>` 
+                                    : `<img src="${post.media}" class="post-cover-media" alt="${DOMPurify.sanitize(post.title)}">`) : ''}
+
+                                <div class="post-content" style="font-size: 1.25rem; line-height: 1.8; color: var(--text-main);">${DOMPurify.sanitize(post.content)}</div>
+
+                                <div class="post-footer" style="opacity: 1; pointer-events: auto; justify-content: flex-start; margin-top: 4rem;">
+                                    <button class="btn-share" onclick="sharePost('${post.id}', '${post.title.replace(/'/g, "\\'")}')">
+                                        <i data-lucide="share-2" style="width: 16px; height: 16px;"></i> Share this update
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        // LIST VIEW
+                        container.innerHTML = posts.map(post => {
+                            let dateStr = 'Recent Update';
+                            try {
+                                if (post.date) {
+                                    dateStr = new Date(post.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+                                }
+                            } catch (e) { console.error('Date error:', e); }
+
+                            return `
+                                <article class="post-card" id="post-${post.id}" onclick="window.location.href='/updates?post=${post.id}'">
+                                    <span class="post-date">${dateStr}</span>
+                                    <h2 class="post-title" style="font-size: 1.75rem; margin-bottom: 1rem;">${DOMPurify.sanitize(post.title)}</h2>
+                                    
+                                    ${post.media ? (post.mediaType === 'video' 
+                                        ? `<div style="position: relative;"><video src="${post.media}" class="post-preview-media"></video><div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.5); border-radius: 50%; padding: 10px;"><i data-lucide="play" style="color: white; width: 24px; height: 24px;"></i></div></div>` 
+                                        : `<img src="${post.media}" class="post-preview-media" alt="${DOMPurify.sanitize(post.title)}">`) : ''}
+
+                                    <div class="post-content-wrapper" style="max-height: 80px;">
+                                        <div class="post-content" style="font-size: 1rem;">${DOMPurify.sanitize(post.content)}</div>
+                                    </div>
+
+                                    <div class="read-more-btn">
+                                        <span>Read More</span>
+                                        <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i>
+                                    </div>
+                                </article>
+                            `;
+                        }).join('');
+                    }
+
+                    lucide.createIcons();
+                })
+                .catch(err => {
+                    console.error('Failed to load posts:', err);
+                    document.getElementById('posts-container').innerHTML = '<p style="color: #ef5350;">Failed to load updates. Please try again later.</p>';
+                });
+        }
+
+        function togglePost(id) {
+            const card = document.getElementById('post-' + id);
+            if (card) {
+                card.classList.toggle('expanded');
+                // Re-init icons if needed (though they should persist)
+                lucide.createIcons();
+            }
+        }
+
+        function sharePost(id, title) {
+            const shareUrl = window.location.origin + '/api/share?id=' + id;
+            
+            if (navigator.share) {
+                // If browser supports native sharing (mobile, Safari, etc)
+                navigator.share({
+                    title: 'WAIT LAB | ' + title,
+                    text: 'Check out this update from WAIT LAB: ' + title,
+                    url: shareUrl
+                }).catch(err => console.log('Share prompt dismissed', err));
+            } else {
+                // Fallback to copying to clipboard
+                navigator.clipboard.writeText(shareUrl).then(() => {
+                    alert('Share link copied to clipboard!');
+                }).catch(err => {
+                    prompt('Copy this link to share:', shareUrl);
+                });
+            }
+        }
+
+        loadPosts();
+    </script>
+</body>
+</html>
