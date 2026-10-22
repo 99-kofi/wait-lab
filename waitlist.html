@@ -222,8 +222,9 @@
 
     function sizeCanvas() {
       var w = window.innerWidth || 1280, h = window.innerHeight || 800;
-      COLS = Math.max(44, Math.min(230, Math.round(w / 7)));
-      ROWS = Math.max(40, Math.min(210, Math.round(h / 7)));
+      var cell = w < 640 ? 5 : 7;
+      COLS = Math.max(56, Math.min(260, Math.round(w / cell)));
+      ROWS = Math.max(64, Math.min(260, Math.round(h / cell)));
       canvas.width = COLS; canvas.height = ROWS;
       buf = ctx.createImageData(COLS, ROWS);
       lum = null;
@@ -233,23 +234,26 @@
 
     function buildLum() {
       var artReady = art && art.complete && art.naturalWidth;
-      if (lum && (hasArt || !artReady)) return;
+      if (lum && hasArt) return;
       hasArt = artReady;
       var s = document.createElement('canvas');
       s.width = COLS; s.height = ROWS;
       var sc = s.getContext('2d');
       sc.fillStyle = '#000'; sc.fillRect(0, 0, COLS, ROWS);
       if (hasArt) {
-        var side = Math.min(COLS, ROWS * 0.7);
-        sc.drawImage(art, art.naturalWidth * 0.22, art.naturalHeight * 0.40, art.naturalWidth * 0.56, art.naturalHeight * 0.38, (COLS - side) / 2, ROWS * 0.07, side, side);
+        var side = Math.min(COLS * 0.9, ROWS * 0.5);
+        sc.drawImage(art, art.naturalWidth * 0.27, art.naturalHeight * 0.45, art.naturalWidth * 0.46, art.naturalHeight * 0.33, (COLS - side) / 2, ROWS * 0.07, side, side);
       }
-      var fs = Math.max(7, Math.round(Math.min(COLS * 0.16, ROWS * 0.17)));
-      var ls = Math.max(3, Math.round(fs * 0.66));
+      var fs = Math.max(11, Math.round(ROWS * 0.17));
       sc.fillStyle = '#fff';
-      if ('letterSpacing' in sc) sc.letterSpacing = ls + 'px';
-      sc.font = '700 ' + fs + 'px monospace';
       sc.textAlign = 'center'; sc.textBaseline = 'middle';
-      sc.fillText('CASPIAN', COLS / 2 + ls / 2, ROWS * 0.86);
+      sc.font = '700 ' + fs + 'px monospace';
+      var kx = Math.min(1.6, (COLS * 0.86) / Math.max(1, sc.measureText('CASPIAN').width));
+      sc.save();
+      sc.translate(COLS / 2, ROWS * 0.855);
+      sc.scale(kx, 1);
+      sc.fillText('CASPIAN', 0, 0);
+      sc.restore();
       var d = sc.getImageData(0, 0, COLS, ROWS).data;
       lum = new Float32Array(COLS * ROWS);
       for (var i = 0; i < lum.length; i++) lum[i] = (d[i*4] * 0.3 + d[i*4+1] * 0.59 + d[i*4+2] * 0.11) / 255;
@@ -257,9 +261,9 @@
 
     function draw(t) {
       buildLum();
-      var emerge = Math.min(1, t / 1800);
-      var noiseAmp = 0.55 - 0.32 * emerge;
-      var sweepY = ((t % 1500) / 1500) * ROWS;
+      var emerge = Math.min(1, t / 3400);
+      var noiseAmp = 0.52 - 0.30 * emerge;
+      var sweepY = ((t % 2200) / 2200) * ROWS;
       var d = buf.data;
       for (var y = 0; y < ROWS; y++) {
         var sweep = Math.max(0, 1 - Math.abs(y - sweepY) / 7) * 0.3;
@@ -278,7 +282,7 @@
     var started = performance.now(), raf = 0, last = 0, killed = false;
     function loop(now) {
       if (killed) return;
-      if (now - last >= 88) { last = now; draw(now - started); }
+      if (now - last >= 110) { last = now; draw(now - started); }
       raf = requestAnimationFrame(loop);
     }
     raf = requestAnimationFrame(loop);
@@ -291,7 +295,7 @@
       overlay.classList.add('done');
       setTimeout(function () { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 950);
     }
-    var timer = setTimeout(finish, reduce ? 260 : 2700);
+    var timer = setTimeout(finish, reduce ? 400 : 4800);
     overlay.addEventListener('click', finish);
   })();
 </script>
