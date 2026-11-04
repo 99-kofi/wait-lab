@@ -1,45 +1,53 @@
-CASPIAN WAITLIST — CURRENT SETUP
-================================
+CASPIAN WAITLIST — QUICK START
 
-FILES
-- caspian-waitlist.html  — the page (this folder, plus synced copies in
-  C:\Users\PC\Documents\cap\ and in the wait-lab repo as waitlist.html)
-- Live URL: https://wait-lab.vercel.app/waitlist
-- The repo's index.html links to it from the nav ("Waitlist").
+Files:
+- caspian-waitlist.html: self-contained page with the original CASPIAN artwork embedded.
+- caspian-hero-optimized.jpg: optimized copy of the artwork (optional; the HTML does not need it).
 
-BACKEND — FormSubmit (free, no dashboard needed)
-------------------------------------------------
-- The form POSTs JSON to:
-    https://formsubmit.co/ajax/WAITLIST_INBOX_REDACTED
-- ONE-TIME ACTIVATION (required):
-  1. Open the live page and join with any real email once.
-  2. FormSubmit emails an activation link to WAITLIST_INBOX_REDACTED —
-     click it. From then on the endpoint is live.
-- On every signup you receive a notification email at
-  WAITLIST_INBOX_REDACTED, and the SUBSCRIBER automatically receives a
-  welcome email generated from the `_autoresponse` text embedded in
-  waitlist.html. Edit that text in waitlist.html (search "_autoresponse")
-  to change the welcome message.
-- Spam guard: hidden honeypot field in the form; bots are silently skipped.
+Preview:
+Open caspian-waitlist.html in a modern browser.
 
-VISUAL/UX FEATURES
-------------------
-- Dithered "CASPIAN" intro overlay: animated Bayer-dithered noise that
-  resolves into the emblem + wordmark (~4.8s, click to skip, honors
-  prefers-reduced-motion). Grid adapts: 5px cells on phones, 7px on desktop.
-- Art panel keeps the ultrasound scan line, crosshair-free emblem with the
-  blurred logo backdrop, grain and float.
-- Form states: SENDING… while submitting, personalized success
-  ("We'll signal <email> when CASPIAN is ready."), clear error messages.
+Included:
+- Responsive desktop/mobile layout
+- Ultrasound-style scan sweep, glowing halo, subtle floating artwork, grain texture
+- Reduced-motion accessibility support
+- Email validation and real signup submission via Formspree (AJAX, no redirect)
+- Spam protection via honeypot field, plus disabled button/loading state during submit
 
-TROUBLESHOOTING
----------------
-- "Could not register right now" on join = the form reached the endpoint
-  but it failed. If it persists, check whether formsubmit.co is up
-  (e.g. isitdownrightnow.com) — it had a full outage (HTTP 522) on
-  the day this was switched over; such outages are temporary and need
-  no code changes.
-- If you ever change the notification email, edit the WAITLIST_ENDPOINT
-  constant in waitlist.html and the CSP in vercel.json
-  (https://formsubmit.co) — both deployed via git push to main
-  (Vercel redeploy takes ~30-60s).
+Connect your Formspree form (one-time setup, ~2 minutes):
+1. Create a free form at https://formspree.io and add https://your-domain/ as its site URL.
+2. Copy the 8-character form ID from your Formspree dashboard.
+3. (Already done) Set the form ID in WAITLIST_FORM_ID in caspian-waitlist.html (search for "WAITLIST BACKEND").
+4. Reload the page and submit — signups arrive in your Formspree inbox (free tier: 50/month).
+
+Important:
+The form ID (xjygnlyy) is already configured — signups arrive in your Formspree inbox (free tier: 50/month).
+
+
+WELCOME / CONFIRMATION EMAIL TO SUBSCRIBERS
+The form's "email" field is what Formspree mails the confirmation to.
+To send every joiner a customized welcome email automatically:
+ 1. Go to https://formspree.io and open your dashboard.
+ 2. Open the form "caspian-waitlist" and go to its Workflow tab
+    (or Plugins tab on older accounts).
+ 3. Click "+ Add New" under Actions -> "Auto Response".
+ 4. Fill in:
+      From name : CASPIAN
+      Subject   : You're on the CASPIAN waitlist
+      Message   : (example below)
+ 5. Save. Every future submission now gets that email sent to
+    the address the visitor typed in.
+
+Example message:
+  Thanks for requesting early access to CASPIAN.
+
+  Your spot is reserved. CASPIAN is a thinker-and-doer
+  intelligence layer - no noise, just a clean signal the
+  moment it's ready. We'll write to this address first.
+
+  - CASPIAN, by WAIT Technologies
+
+Note: the Auto Response feature requires a Formspree
+Professional or Business plan. On the free plan the signup is
+still recorded and you can reply manually from the dashboard's
+submissions list.

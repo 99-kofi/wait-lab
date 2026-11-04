@@ -142,15 +142,13 @@
 </div>
 <script>
   /*
-   * WAITLIST BACKEND — FormSubmit:
-   * 1. Signups are POSTed to formsubmit.co/ajax/WAITLIST_INBOX_REDACTED.
-   * 2. FIRST RUN ONLY: submit once from the live page, then open the
-   *    activation email FormSubmit sends to WAITLIST_INBOX_REDACTED
-   *    and click the confirm link. The waitlist goes live after that.
-   * 3. Every signup is mailed to that address, and each subscriber
-   *    automatically receives the welcome email (_autoresponse field).
+   * WAITLIST BACKEND — Formspree:
+   * 1. Create a free form at https://formspree.io (use your page URL as the form's site).
+   * 2. Copy the form ID (8 characters, e.g. "xkdoqwer") from your Formspree dashboard.
+   * 3. Replace YOUR_FORM_ID below. Done — signups land in your Formspree inbox.
    */
-  const WAITLIST_ENDPOINT = 'https://formsubmit.co/ajax/WAITLIST_INBOX_REDACTED';
+  const WAITLIST_FORM_ID = 'xjygnlyy';
+  const WAITLIST_ENDPOINT = 'https://formspree.io/f/' + WAITLIST_FORM_ID;
 
   const form = document.getElementById('waitlist-form');
   const message = document.getElementById('form-message');
@@ -176,17 +174,12 @@
       emailInput.focus();
       return;
     }
-    if (WAITLIST_ENDPOINT.indexOf('YOUR_EMAIL') !== -1) {
-      showMessage('Waitlist is not connected yet. Set your email in caspian-waitlist.html.', true);
+    if (WAITLIST_FORM_ID === 'YOUR_FORM_ID') {
+      showMessage('Waitlist is not connected yet. Replace YOUR_FORM_ID in caspian-waitlist.html.', true);
       return;
     }
 
     const honeypot = form.querySelector('input[name="_gotcha"]');
-    if (honeypot && honeypot.value) {
-      // stealthily filled honeypot — pretend success, don't send
-      showMessage('You’re on the list. We’ll signal you when CASPIAN is ready.');
-      return;
-    }
 
     setBusy(true);
     try {
@@ -196,19 +189,16 @@
         body: JSON.stringify({
           email,
           _subject: 'CASPIAN waitlist signup',
-          _template: 'table',
-          _captcha: 'false',
-          _autoresponse: 'Thanks for requesting early access to CASPIAN.\n\nYour spot is reserved — no noise, just a clean signal when CASPIAN is ready.\n\n— CASPIAN, by WAIT Technologies',
-          _honey: ''
+          _gotcha: honeypot ? honeypot.value : ''
         })
       });
       const data = await response.json().catch(() => ({}));
-      if (response.ok && data.success === 'true') {
+      if (response.ok) {
         const joined = email;
         form.reset();
         showMessage('You’re on the list. We’ll signal ' + joined + ' when CASPIAN is ready.');
-      } else if (response.status === 429) {
-        showMessage('Too many attempts just now. Please try again in a minute.', true);
+      } else if (response.status === 400 && data.errors) {
+        showMessage('That email was rejected as invalid. Please check it and try again.', true);
       } else {
         showMessage('Could not register right now. Please try again in a moment.', true);
       }
