@@ -194,8 +194,9 @@
       });
       const data = await response.json().catch(() => ({}));
       if (response.ok) {
+        const joined = email;
         form.reset();
-        showMessage('You’re on the list. We’ll signal you when CASPIAN is ready.');
+        showMessage('You’re on the list. We’ll signal ' + joined + ' when CASPIAN is ready.');
       } else if (response.status === 400 && data.errors) {
         showMessage('That email was rejected as invalid. Please check it and try again.', true);
       } else {
