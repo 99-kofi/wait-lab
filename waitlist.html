@@ -75,7 +75,10 @@
   .signup { display:flex; width:100%; border:1px solid rgba(255,255,255,.28); background:rgba(255,255,255,.025); transition:border-color .25s, background .25s; }
   .signup:focus-within { border-color:rgba(255,255,255,.75); background:rgba(255,255,255,.055); }
   input[type=email] { min-width:0; flex:1; padding:16px 14px; color:#fff; background:transparent; border:0; outline:0; font:13px ui-monospace, SFMono-Regular, Menlo, monospace; }
-  input::placeholder { color:#747474; }
+  /* iOS Safari force-zooms the viewport on focus for any input under 16px */
+  @media (pointer: coarse), (max-width: 760px) { input[type=email] { font-size:16px; } }
+  input::placeholder { color:#8a8a8a; }
+  input:-webkit-autofill { -webkit-text-fill-color:#fff; -webkit-box-shadow:0 0 0 1000px #141414 inset; transition: background-color 99999s; }
   button { padding:0 17px; border:0; border-left:1px solid var(--line); background:#f1f1f1; color:#080808; font:10px ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing:.08em; cursor:pointer; transition:background .2s, color .2s; white-space:nowrap; }
   button:hover { background:#cfcfcf; }
   button:focus-visible, input:focus-visible { outline:2px solid white; outline-offset:3px; }
