@@ -61,6 +61,9 @@
       if (response.ok) {
         const joined = email;
         form.reset();
+        // release the input's compositor layer so it repaints fresh after reset
+        // (avoid mobile ghost-strip artifacts over the placeholder right after send)
+        emailInput.blur();
         try { localStorage.setItem('last_join', String(Date.now())); } catch (e) {}
         showMessage('You’re on the list. We’ll signal ' + joined + ' when CASPIAN is ready.');
       } else if (response.status === 400 && data.errors) {
