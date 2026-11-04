@@ -2,6 +2,10 @@ const { createClient } = require('redis');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 
+// Strict media allowlist: image or video data URLs with a safe base64 payload.
+// Prevents attribute breakout / XSS via stored post.media.
+const MEDIA_DATA_URL_RE = /^data:(image\/(?:png|jpe?g|webp|gif)|video\/(?:mp4|webm));base64,[A-Za-z0-9+/=]+$/;
+
 module.exports = async function handler(req, res) {
   const POSTS_KEY = 'wait-labs-posts';
   
@@ -16,6 +20,7 @@ module.exports = async function handler(req, res) {
 
   // Helper to check authentication
   const checkAuth = () => {
+    if (!process.env.ADMIN_PASSWORD) return false; // never authenticate when unconfigured
     const authHeader = req.headers.authorization || '';
     const token = authHeader.replace('Bearer ', '').trim();
     
@@ -60,6 +65,12 @@ module.exports = async function handler(req, res) {
         await redis.disconnect();
         return res.status(413).json({ error: 'Payload too large. Media file must be under 5MB.' });
       }
+
+      // Media format validation (data URL allowlist)
+      if (media && !MEDIA_DATA_URL_RE.test(media)) {
+        await redis.disconnect();
+        return res.status(415).json({ error: 'Unsupported media format. Use image or video data URLs.' });
+      }
       
       const posts = await getPosts();
       const newPost = {
@@ -94,6 +105,12 @@ module.exports = async function handler(req, res) {
       if (media && media.length > 7000000) {
         await redis.disconnect();
         return res.status(413).json({ error: 'Payload too large. Media file must be under 5MB.' });
+      }
+
+      // Media format validation (data URL allowlist)
+      if (media && !MEDIA_DATA_URL_RE.test(media)) {
+        await redis.disconnect();
+        return res.status(415).json({ error: 'Unsupported media format. Use image or video data URLs.' });
       }
       
       let posts = await getPosts();

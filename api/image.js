@@ -29,6 +29,12 @@ module.exports = async function handler(req, res) {
       return res.status(500).send('Invalid media format');
     }
 
+    // Only serve image types — never text/html or script types
+    const ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
+    if (ALLOWED_TYPES.indexOf(matches[1]) === -1) {
+      return res.status(415).send('Unsupported media type');
+    }
+
     const contentType = matches[1];
     const base64Data = matches[2];
     const buffer = Buffer.from(base64Data, 'base64');

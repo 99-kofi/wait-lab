@@ -126,7 +126,7 @@
       <form class="form" id="waitlist-form">
         <label class="form-label" for="email">Request early access</label>
         <div class="signup">
-          <input id="email" name="email" type="email" placeholder="your@email.com" autocomplete="email" required aria-label="Your email address">
+          <input id="email" name="email" type="email" placeholder="your@email.com" autocomplete="email" maxlength="254" required aria-label="Your email address">
           <button type="submit">JOIN WAITLIST ↗</button>
         </div>
         <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" aria-hidden="true" style="display:none">
@@ -181,6 +181,13 @@
 
     const honeypot = form.querySelector('input[name="_gotcha"]');
 
+    let lastJoin = 0;
+    try { lastJoin = parseInt(localStorage.getItem('last_join') || '0', 10) || 0; } catch (e) {}
+    if (Date.now() - lastJoin < 15000) {
+      showMessage('Hold on a second before trying again.');
+      return;
+    }
+
     setBusy(true);
     try {
       const response = await fetch(WAITLIST_ENDPOINT, {
@@ -196,6 +203,7 @@
       if (response.ok) {
         const joined = email;
         form.reset();
+        try { localStorage.setItem('last_join', String(Date.now())); } catch (e) {}
         showMessage('You’re on the list. We’ll signal ' + joined + ' when CASPIAN is ready.');
       } else if (response.status === 400 && data.errors) {
         showMessage('That email was rejected as invalid. Please check it and try again.', true);
